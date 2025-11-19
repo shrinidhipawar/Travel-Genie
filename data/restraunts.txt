@@ -1,0 +1,14 @@
+Paris:
+  - Le Comptoir du Relais: Classic French cuisine, famous for escargots.
+  - Angelina: Famous for pastries and hot chocolate.
+  - L'As du Fallafel: Popular Middle Eastern spot in Le Marais.
+
+Rome:
+  - Da Enzo al 29: Traditional Roman trattoria in Trastevere.
+  - Roscioli: Known for carbonara and cured meats.
+  - Pizzeria La Montecarlo: Popular spot near Piazza Navona.
+
+London:
+  - Dishoom: Indian café inspired by Bombay.
+  - Flat Iron: Affordable and excellent steak.
+  - Borough Market: Iconic food market with street food vendors.

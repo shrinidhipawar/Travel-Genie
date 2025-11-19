@@ -1,0 +1,11 @@
+Paris:
+  - Beware pickpockets in metro and tourist areas.
+  - Restaurants automatically add service charge.
+
+Rome:
+  - Watch for fake taxi drivers; use official white taxis.
+  - Carry cash; some trattorias don’t accept cards.
+
+London:
+  - Tube closes around midnight.
+  - Avoid touching Oyster card twice at gates (double charge).

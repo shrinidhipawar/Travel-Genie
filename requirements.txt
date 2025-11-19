@@ -1,0 +1,7 @@
+streamlit
+langchain>=0.0.300
+chromadb
+openai
+tqdm
+python-dotenv
+nltk

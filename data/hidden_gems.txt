@@ -1,0 +1,14 @@
+Paris:
+  - Canal Saint-Martin: Scenic canals with cafes.
+  - Rue Crémieux: Colorful Instagram-famous street.
+  - Musée de l'Orangerie: Monet’s Water Lilies.
+
+Rome:
+  - Aventine Keyhole: Unique view of St. Peter’s Basilica.
+  - Coppedè District: Fairy-tale architecture.
+  - Basilica di San Clemente: 3-level underground history.
+
+London:
+  - Neal’s Yard: Colorful courtyard in Covent Garden.
+  - Sky Garden: Free viewpoint (booking needed).
+  - Leadenhall Market: Harry Potter filming location.

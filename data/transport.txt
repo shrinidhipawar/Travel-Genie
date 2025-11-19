@@ -1,0 +1,14 @@
+Paris:
+  - Metro is fastest; most zones covered by a single ticket.
+  - Walkable city; many attractions near each other.
+  - Uber and Bolt widely available.
+
+Rome:
+  - Metro limited; buses more useful for major attractions.
+  - Most historic areas are walkable.
+  - Taxis available at official stands.
+
+London:
+  - Use Oyster or contactless card.
+  - Tube is fastest way to travel.
+  - Buses run 24/7; night buses helpful after Tube closes.
