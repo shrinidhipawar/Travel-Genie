@@ -16,11 +16,15 @@ PERSIST_DIR = "chroma_db"
 
 def load_files():
     docs = []
+    from langchain_core.documents import Document
     for fname in os.listdir(DATA_DIR):
         path = os.path.join(DATA_DIR, fname)
         if os.path.isfile(path):
             with open(path, "r", encoding="utf-8") as f:
-                docs.append(f.read())
+                content = f.read()
+                # Create document with source metadata
+                doc = Document(page_content=content, metadata={"source": fname})
+                docs.append(doc)
     return docs
 
 
@@ -32,7 +36,7 @@ def build_vectorstore():
         chunk_size=800,
         chunk_overlap=100
     )
-    split_docs = splitter.create_documents(raw_docs)
+    split_docs = splitter.split_documents(raw_docs)
 
     print("⚡ Using FastEmbed (no TensorFlow, no PyTorch)...")
     embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
