@@ -14,6 +14,7 @@ import folium
 from streamlit_folium import st_folium
 import sqlite3
 from datetime import datetime
+import re
 
 load_dotenv()
 
@@ -337,6 +338,8 @@ if st.session_state.destinations:
     for i, stop in enumerate(st.session_state.destinations):
         st.markdown(f"**{i+1}. {stop['city']}** ({stop['days']} Days)")
     
+    st.info("💡 Note: You have cities in your route. Click 'Clear Route' below if you want to start fresh with a single city.")
+    
     if st.button("❌ Clear Route"):
         st.session_state.destinations = []
         st.rerun()
@@ -585,9 +588,13 @@ def get_geoapify_places(city: str, api_key: str, limit: int = 20):
         return []
     
     try:
+        # Fix common ambiguity for New York (State vs City)
+        if city.lower().strip() == "new york":
+            city = "New York City, USA"
+            
         categories = "tourism.attraction,tourism.sights,entertainment.museum,heritage,catering.restaurant"
         geocode_url = f"https://api.geoapify.com/v1/geocode/search?text={city}&apiKey={GEOAPIFY_KEY}"
-        geo_response = requests.get(geocode_url, timeout=5).json()
+        geo_response = requests.get(geocode_url, timeout=15).json()
         
         if not geo_response.get('features'):
             return []
@@ -596,7 +603,7 @@ def get_geoapify_places(city: str, api_key: str, limit: int = 20):
         lon, lat = coords[0], coords[1]
         
         places_url = f"https://api.geoapify.com/v2/places?categories={categories}&filter=circle:{lon},{lat},5000&limit={limit}&apiKey={GEOAPIFY_KEY}"
-        places_response = requests.get(places_url, timeout=5).json()
+        places_response = requests.get(places_url, timeout=15).json()
         
         results = []
         for feature in places_response.get('features', []):
@@ -648,8 +655,14 @@ def create_pdf(itinerary_text):
     return pdf.output(dest='S').encode('latin-1') 
 
 def create_audio(text):
-    # gTTS expects text. limit length to first 500 chars for speed in demo
-    short_text = text[:1000] # Limit for demo performance
+    # Remove simple markdown formatting for better speech
+    clean_text = re.sub(r'[*_#`]', '', text)          # Remove *, _, #, `
+    clean_text = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', clean_text) # Remove links but keep text
+    clean_text = re.sub(r'={2,}', '', clean_text)     # Remove "==" or "===" lines
+    clean_text = re.sub(r'-{2,}', '', clean_text)     # Remove "--" lines
+    
+    # gTTS expects text. limit length to first 1000 chars for speed in demo
+    short_text = clean_text[:1000] 
     tts = gTTS(short_text, lang='en')
     with io.BytesIO() as f:
         tts.write_to_fp(f)
@@ -741,13 +754,17 @@ if st.session_state.planning_mode:
 
             # Construct Master Query
             trip_overview = "\n".join(full_query_parts)
-            query = f"""Plan a multi-destination trip starting {start_date}.
+            
+            trip_type = "multi-destination trip" if len(trips_to_plan) > 1 else "trip"
+            logistics_instruction = "- **Logistics**: Brief travel advice between cities." if len(trips_to_plan) > 1 else ""
+            
+            query = f"""Plan a {trip_type} starting {start_date}.
 Destinations:
 {trip_overview}
 Budget: {budget}.
 Preferences: {filter_str}.
 
-Focus on seamless travel between these cities and {budget} experiences."""
+Focus on {budget} experiences."""
 
             prompt = f"""
 You are TravelGenie, a luxury travel planning expert.
@@ -758,9 +775,11 @@ USER REQUEST:
 {query}
 
 Create a cohesive itinerary.
+IMPORTANT: Create an itinerary ONLY for the requested cities. Do NOT add any other cities.
+
 Structure:
 - **Trip Title** (Markdown H1)
-- **Logistics**: Brief travel advice between cities (if multi-city).
+{logistics_instruction}
 - **City-by-City Itinerary**:
   - For each city, provide a day-by-day plan.
   - Include specific restaurants matching: {filter_str}
@@ -788,6 +807,12 @@ Use the provided location data strictly for attractions/restaurants.
             st.session_state.itinerary_mode = "GENERATED"
             st.session_state.last_prompt = prompt # Save for refinement
             st.session_state.last_answer = answer # Save for refinement
+            
+            # Save meta-data for saving trip later
+            st.session_state.itinerary_days = trips_to_plan[0]['days']
+            st.session_state.itinerary_country = trips_to_plan[0]['country']
+            st.session_state.itinerary_budget = budget
+            
             st.rerun()
 
 
@@ -890,7 +915,7 @@ if st.session_state.itinerary_result:
         if not GEOAPIFY_KEY:
             st.warning("⚠️ Map unavailable: Geoapify API Key is missing. Add `GEOAPIFY_API_KEY` to your `.env` file.")
         else:
-            st.info(f"Could not find specific locations for map in '{target_city}'.")
+            st.warning(f"Could not find specific locations for map in '{target_city}'. Try being more specific (e.g. 'New York City' instead of 'New York') or cleaning up the name.")
 
     st.markdown("---")
     st.markdown("### Tools")
@@ -900,7 +925,12 @@ if st.session_state.itinerary_result:
     with col_tools1:
         # Save Trip
         if st.button("💾 Save Trip", use_container_width=True):
-            if save_trip(target_city, "", 0, "N/A", answer): # Simplified, ideal to capture actual state
+            # Retrieve metadata from session state, with fallbacks
+            s_country = st.session_state.get("itinerary_country", "")
+            s_days = st.session_state.get("itinerary_days", 0)
+            s_budget = st.session_state.get("itinerary_budget", "N/A")
+            
+            if save_trip(target_city, s_country, s_days, s_budget, answer):
                  st.success("Trip Saved!")
                  st.rerun()
 
