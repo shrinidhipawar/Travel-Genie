@@ -238,6 +238,42 @@ div.stButton > button:hover {
 .api-active { color: #10b981; font-weight: bold; }
 .api-missing { color: #ef4444; font-weight: bold; }
 .api-optional { color: #f59e0b; font-weight: bold; }
+/* ITINERARY FORMATTING */
+.itinerary-container {
+    font-family: 'Inter', sans-serif;
+}
+.itinerary-container h1 {
+    font-family: 'Playfair Display', serif;
+    color: #1e3a8a; /* Dark Blue */
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.5rem;
+}
+.itinerary-container h2 {
+    color: #0f172a;
+    font-size: 1.8rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+.itinerary-container h3 {
+    color: #334155;
+    font-size: 1.4rem;
+    margin-top: 1.5rem;
+    font-weight: 600;
+}
+.itinerary-container ul, .itinerary-container ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+.itinerary-container li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+.itinerary-container strong {
+    color: #0369a1;
+}
 
 </style>
 """, unsafe_allow_html=True)
@@ -313,13 +349,16 @@ with col1:
     current_city = ""
     current_country = ""
     
-    if dest_selection == "Other":
+    if dest_selection.startswith("Other"):
         custom_dest = st.text_input("Enter Destination", placeholder="City, Country")
-        if "," in custom_dest:
-            current_city = custom_dest.split(",")[0].strip()
-            current_country = custom_dest.split(",")[1].strip()
-        else:
-            current_city = custom_dest.strip()
+        if custom_dest:
+            if "," in custom_dest:
+                parts = custom_dest.split(",")
+                current_city = parts[0].strip()
+                if len(parts) > 1:
+                    current_country = parts[1].strip()
+            else:
+                current_city = custom_dest.strip()
     else:
         if "," in dest_selection:
             current_city = dest_selection.split(",")[0].strip()
@@ -782,7 +821,9 @@ if st.session_state.itinerary_result:
     """, unsafe_allow_html=True)
     
     # Content (Rendered as native Markdown)
+    st.markdown('<div class="itinerary-container">', unsafe_allow_html=True)
     st.markdown(answer)
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # Separator
     st.markdown("---")
